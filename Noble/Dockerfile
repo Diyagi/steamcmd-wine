@@ -41,18 +41,41 @@ RUN set -x \
  	&& ln -s "${STEAMCMDDIR}/linux64/steamclient.so" "/usr/lib/x86_64-linux-gnu/steamclient.so" \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN dpkg --add-architecture i386 \ 
+
+FROM build_stage as winehq
+
+ARG WINE_BRANCH=devel
+ARG WINE_VERSION=9.8~noble-1
+# https://wiki.winehq.org/Mono#Versions
+ARG WINE_MONO_VERSION=9.1.0
+
+# Install WineHQ
+RUN dpkg --add-architecture i386 \
+	&& mkdir -pm755 /etc/apt/keyrings \
+	&& curl -fsSL -o /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key \
+	&& curl -fsSL -o /etc/apt/sources.list.d/winehq-noble.sources https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources \
     && apt-get update \
     && apt-get install -y \
-        wine \
-        wine64 \
-        winbind \
         xvfb \
+		xz-utils \
+	&& apt-get install -y --install-recommends \
+		winehq-${WINE_BRANCH}=${WINE_VERSION} \
     && rm -rf /var/lib/apt/lists/*
 
-FROM build_stage AS noble-root
+# Install wine-mono
+# Stupid wine, i took days figuring out why it was timing out on boot...
+# turns out wine need mono, and it does not say anything in the terminal,
+# but shows an dialog box inside the dummy screen...
+# i had to take an screenshot of the video buffer to figure this shit out
+RUN mkdir -p /opt/wine/mono \
+	&& curl -fsSL -o wine-mono-${WINE_MONO_VERSION}-x86.tar.xz https://dl.winehq.org/wine/wine-mono/9.1.0/wine-mono-9.1.0-x86.tar.xz \
+	&& tar -xf wine-mono-${WINE_MONO_VERSION}-x86.tar.xz -C /opt/wine/mono \
+	&& rm wine-mono-${WINE_MONO_VERSION}-x86.tar.xz
+
+
+FROM winehq AS noble-root
 WORKDIR ${STEAMCMDDIR}
 
-FROM noble-root AS noble
+FROM winehq AS noble
 # Switch to user
 USER ${USER}
