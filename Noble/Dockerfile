@@ -56,8 +56,8 @@ RUN dpkg --add-architecture i386 \
 	&& curl -fsSL -o /etc/apt/sources.list.d/winehq-noble.sources https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources \
     && apt-get update \
     && apt-get install -y \
-		winbind \
-        xvfb \
+		winbind=2:4.19.5+dfsg-4ubuntu9 \
+        xvfb=2:21.1.12-1ubuntu1 \
 		xz-utils \
 	&& apt-get install -y --no-install-recommends --no-install-suggests \
 		winehq-${WINE_BRANCH}=${WINE_VERSION} \
@@ -69,7 +69,7 @@ RUN dpkg --add-architecture i386 \
 # but shows an dialog box inside the dummy screen...
 # i had to take an screenshot of the video buffer to figure this shit out
 RUN mkdir -p /opt/wine/mono \
-	&& curl -fsSL -o wine-mono-${WINE_MONO_VERSION}-x86.tar.xz https://dl.winehq.org/wine/wine-mono/9.1.0/wine-mono-9.1.0-x86.tar.xz \
+	&& curl -fsSL -o wine-mono-${WINE_MONO_VERSION}-x86.tar.xz https://dl.winehq.org/wine/wine-mono/${WINE_MONO_VERSION}/wine-mono-${WINE_MONO_VERSION}-x86.tar.xz \
 	&& tar -xf wine-mono-${WINE_MONO_VERSION}-x86.tar.xz -C /opt/wine/mono \
 	&& rm wine-mono-${WINE_MONO_VERSION}-x86.tar.xz
 
