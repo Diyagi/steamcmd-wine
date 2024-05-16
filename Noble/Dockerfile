@@ -56,9 +56,10 @@ RUN dpkg --add-architecture i386 \
 	&& curl -fsSL -o /etc/apt/sources.list.d/winehq-noble.sources https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources \
     && apt-get update \
     && apt-get install -y \
+		winbind \
         xvfb \
 		xz-utils \
-	&& apt-get install -y --install-recommends \
+	&& apt-get install -y --no-install-recommends --no-install-suggests \
 		winehq-${WINE_BRANCH}=${WINE_VERSION} \
     && rm -rf /var/lib/apt/lists/*
 
