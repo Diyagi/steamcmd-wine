@@ -1,25 +1,24 @@
 ############################################################
 # Dockerfile that contains SteamCMD and WineHQ
 ############################################################
-FROM ubuntu:noble as build_stage
+FROM ubuntu:noble AS build_stage
 
 LABEL maintainer="github@diyagi.dev"
 ARG PUID=1001
 
-ENV USER steam
-ENV HOMEDIR "/home/${USER}"
-ENV STEAMCMDDIR "${HOMEDIR}/steamcmd"
+ENV USER=steam
+ENV HOMEDIR="/home/${USER}"
+ENV STEAMCMDDIR="${HOMEDIR}/steamcmd"
 
 RUN set -x \
 	# Install, update & upgrade packages
 	&& apt-get update \
 	&& apt-get install -y --no-install-recommends --no-install-suggests \
-		lib32stdc++6=14-20240412-0ubuntu1 \
-		lib32gcc-s1=14-20240412-0ubuntu1 \
+		lib32stdc++6=14.2.0-4ubuntu2~24.04.1 \
+		lib32gcc-s1=14.2.0-4ubuntu2~24.04.1 \
 		ca-certificates=20240203 \
-		nano=7.2-2build1 \
-		curl=8.5.0-2ubuntu10.1 \
-		locales=2.39-0ubuntu8.1 \
+		curl=8.5.0-2ubuntu10.8 \
+		locales=2.39-0ubuntu8.7 \
 	&& sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
 	&& dpkg-reconfigure --frontend=noninteractive locales \
 	# Create unprivileged user
@@ -42,12 +41,12 @@ RUN set -x \
 	&& rm -rf /var/lib/apt/lists/*
 
 
-FROM build_stage as winehq
+FROM build_stage AS winehq
 
 ARG WINE_BRANCH=devel
-ARG WINE_VERSION=9.8~noble-1
+ARG WINE_VERSION=11.6~noble-1
 # https://wiki.winehq.org/Mono#Versions
-ARG WINE_MONO_VERSION=9.1.0
+ARG WINE_MONO_VERSION=11.0.0
 
 # Install WineHQ
 RUN dpkg --add-architecture i386 \
@@ -56,11 +55,11 @@ RUN dpkg --add-architecture i386 \
 	&& curl -fsSL -o /etc/apt/sources.list.d/winehq-noble.sources https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources \
     && apt-get update \
     && apt-get install -y \
-		winbind=2:4.19.5+dfsg-4ubuntu9 \
-        xvfb=2:21.1.12-1ubuntu1 \
-		xz-utils \
-	&& apt-get install -y --no-install-recommends --no-install-suggests \
-		winehq-${WINE_BRANCH}=${WINE_VERSION} \
+        winbind=2:4.19.5+dfsg-4ubuntu9.4 \
+        xvfb=2:21.1.12-1ubuntu1.5 \
+        xz-utils=5.6.1+really5.4.5-1ubuntu0.2 \
+    && apt-get install -y --no-install-recommends --no-install-suggests \
+        winehq-${WINE_BRANCH}=${WINE_VERSION} \
     && rm -rf /var/lib/apt/lists/*
 
 # Install wine-mono
